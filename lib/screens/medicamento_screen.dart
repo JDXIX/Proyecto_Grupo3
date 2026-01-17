@@ -5,7 +5,9 @@ import '../services/audio_service.dart';
 import 'crud_medicamentos_screen.dart';
 
 class MedicamentoScreen extends StatefulWidget {
-  const MedicamentoScreen({super.key});
+  final String? medicamentoId;
+
+  const MedicamentoScreen({super.key, this.medicamentoId});
 
   @override
   State<MedicamentoScreen> createState() => _MedicamentoScreenState();
@@ -18,14 +20,20 @@ class _MedicamentoScreenState extends State<MedicamentoScreen> {
   @override
   void initState() {
     super.initState();
+    audioService.init();
     _cargarMedicamento();
+  }
+
+  @override
+  void dispose() {
+    audioService.dispose();
+    super.dispose();
   }
 
   void _cargarMedicamento() async {
     // 🔹 Simulación del resultado del OCR (Grupo 2)
-    final result = await DatabaseHelper.instance.getMedicamentoById(
-      'paracetamol',
-    );
+    final idToLoad = widget.medicamentoId ?? 'paracetamol';
+    final result = await DatabaseHelper.instance.getMedicamentoById(idToLoad);
 
     setState(() {
       medicamento = result;
@@ -40,7 +48,13 @@ class _MedicamentoScreenState extends State<MedicamentoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Guía de medicación'),
+        title: Text(
+          'Guía de medicación',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         centerTitle: true,
 
         // 🔹 BOTÓN PARA ACCEDER AL CRUD (MANTENIMIENTO)
@@ -81,7 +95,11 @@ class _MedicamentoScreenState extends State<MedicamentoScreen> {
     return Center(
       child: Text(
         medicamento!.nombre,
-        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -104,9 +122,18 @@ class _MedicamentoScreenState extends State<MedicamentoScreen> {
             Text(texto, style: const TextStyle(fontSize: 20)),
             const SizedBox(height: 10),
             Center(
-              child: IconButton(
-                icon: const Icon(Icons.volume_up, size: 40),
-                onPressed: () => audioService.speak(texto),
+              child: Semantics(
+                button: true,
+                label: 'Reproducir audio de $titulo',
+                child: IconButton(
+                  tooltip: 'Reproducir audio',
+                  icon: Icon(
+                    Icons.volume_up,
+                    size: 40,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: () => audioService.speak(texto),
+                ),
               ),
             ),
           ],

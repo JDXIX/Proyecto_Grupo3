@@ -13,7 +13,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Guía accesible de medicación',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(
+          0xFF0073E6,
+        ), // Vibrant blue seed from selected palette
+      ),
       home: const MedicamentoScreen(),
     );
   }
