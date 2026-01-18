@@ -3,8 +3,12 @@ import 'package:path/path.dart';
 import '../models/medicamento.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper instance = DatabaseHelper._internal();
+  static DatabaseHelper _instance = DatabaseHelper._internal();
+  static DatabaseHelper get instance => _instance;
+  static set instance(DatabaseHelper value) => _instance = value;
+
   static Database? _database;
+  static String? testDatabasePath;
 
   DatabaseHelper._internal();
 
@@ -15,9 +19,12 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
+    print('DEBUG: Calling getDatabasesPath');
+    final dbPath = testDatabasePath ?? await getDatabasesPath();
+    print('DEBUG: getDatabasesPath returned: $dbPath');
     final path = join(dbPath, 'medicamentos.db');
 
+    print('DEBUG: Opening database at $path');
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 

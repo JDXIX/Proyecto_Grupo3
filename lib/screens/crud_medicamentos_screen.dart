@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import '../database/database_helper.dart';
 import '../models/medicamento.dart';
 import 'medicamento_screen.dart';
 
 class CrudMedicamentosScreen extends StatefulWidget {
-  const CrudMedicamentosScreen({super.key});
+  final List<CameraDescription> cameras;
+
+  const CrudMedicamentosScreen({super.key, required this.cameras});
 
   @override
   State<CrudMedicamentosScreen> createState() => _CrudMedicamentosScreenState();
@@ -47,7 +50,10 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => MedicamentoScreen(medicamentoId: m.id),
+                  builder: (_) => MedicamentoScreen(
+                    medicamentoId: m.id,
+                    cameras: widget.cameras,
+                  ),
                 ),
               );
             },

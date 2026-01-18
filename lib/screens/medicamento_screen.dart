@@ -1,4 +1,6 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:proyectog3/screens/recognition/recognition_home.dart';
 import '../database/database_helper.dart';
 import '../models/medicamento.dart';
 import '../services/audio_service.dart';
@@ -6,8 +8,13 @@ import 'crud_medicamentos_screen.dart';
 
 class MedicamentoScreen extends StatefulWidget {
   final String? medicamentoId;
+  final List<CameraDescription> cameras;
 
-  const MedicamentoScreen({super.key, this.medicamentoId});
+  const MedicamentoScreen({
+    super.key,
+    this.medicamentoId,
+    required this.cameras,
+  });
 
   @override
   State<MedicamentoScreen> createState() => _MedicamentoScreenState();
@@ -43,7 +50,10 @@ class _MedicamentoScreenState extends State<MedicamentoScreen> {
   @override
   Widget build(BuildContext context) {
     if (medicamento == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        appBar: AppBar(title: const Text('Cargando...')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Scaffold(
@@ -60,13 +70,27 @@ class _MedicamentoScreenState extends State<MedicamentoScreen> {
         // 🔹 BOTÓN PARA ACCEDER AL CRUD (MANTENIMIENTO)
         actions: [
           IconButton(
+            icon: const Icon(Icons.camera_alt),
+            tooltip: 'Escanear medicamento',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      RecognitionHomeScreen(cameras: widget.cameras),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Mantenimiento de medicamentos',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const CrudMedicamentosScreen(),
+                  builder: (_) =>
+                      CrudMedicamentosScreen(cameras: widget.cameras),
                 ),
               );
             },
