@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/medicamento.dart';
+import 'medication_seeds.dart';
 
 class DatabaseHelper {
   static DatabaseHelper _instance = DatabaseHelper._internal();
@@ -13,18 +14,28 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
+    if (_database != null) {
+      // Opcional: Verificar si necesitamos re-sembrar (ej. si el usuario pide 500 y hay 2)
+      await _checkAndSeed(_database!);
+      return _database!;
+    }
     _database = await _initDatabase();
+    await _checkAndSeed(_database!);
     return _database!;
   }
 
+  Future<void> _checkAndSeed(Database db) async {
+    final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM medicamentos'));
+    if (count != null && count < 500) {
+      print('DEBUG: Database count is $count, seeding mass data...');
+      await _seedDatabase(db);
+    }
+  }
+
   Future<Database> _initDatabase() async {
-    print('DEBUG: Calling getDatabasesPath');
     final dbPath = testDatabasePath ?? await getDatabasesPath();
-    print('DEBUG: getDatabasesPath returned: $dbPath');
     final path = join(dbPath, 'medicamentos.db');
 
-    print('DEBUG: Opening database at $path');
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
@@ -39,28 +50,16 @@ class DatabaseHelper {
       )
     ''');
 
-    // 🔹 Datos iniciales (simulan la BD real)
-    await db.insert(
-      'medicamentos',
-      Medicamento(
-        id: 'paracetamol',
-        nombre: 'Paracetamol',
-        paraQueSirve: 'Sirve para aliviar el dolor y la fiebre.',
-        comoTomar: 'Tomar una pastilla cada 8 horas.',
-        advertencias: 'No tomar más de 4 pastillas al día.',
-      ).toMap(),
-    );
+    await _seedDatabase(db);
+  }
 
-    await db.insert(
-      'medicamentos',
-      Medicamento(
-        id: 'ibuprofeno',
-        nombre: 'Ibuprofeno',
-        paraQueSirve: 'Sirve para reducir el dolor y la inflamación.',
-        comoTomar: 'Tomar una pastilla después de comer.',
-        advertencias: 'No tomar con el estómago vacío.',
-      ).toMap(),
-    );
+  Future<void> _seedDatabase(Database db) async {
+    // Importación dinámica o desde lista estática
+    final batch = db.batch();
+    for (var m in medicationSeeds) {
+      batch.insert('medicamentos', m.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit();
   }
 
   Future<Medicamento?> getMedicamentoById(String id) async {
@@ -69,6 +68,27 @@ class DatabaseHelper {
       'medicamentos',
       where: 'id = ?',
       whereArgs: [id],
+    );
+
+    if (result.isNotEmpty) {
+      final m = result.first;
+      return Medicamento(
+        id: m['id'] as String,
+        nombre: m['nombre'] as String,
+        paraQueSirve: m['para_que_sirve'] as String,
+        comoTomar: m['como_tomar'] as String,
+        advertencias: m['advertencias'] as String,
+      );
+    }
+    return null;
+  }
+
+  Future<Medicamento?> getMedicamentoByNombre(String nombre) async {
+    final db = await database;
+    final result = await db.query(
+      'medicamentos',
+      where: 'LOWER(nombre) = ?',
+      whereArgs: [nombre.toLowerCase().trim()],
     );
 
     if (result.isNotEmpty) {

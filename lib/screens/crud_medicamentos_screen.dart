@@ -6,8 +6,13 @@ import 'medicamento_screen.dart';
 
 class CrudMedicamentosScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
+  final String? initialNombre;
 
-  const CrudMedicamentosScreen({super.key, required this.cameras});
+  const CrudMedicamentosScreen({
+    super.key,
+    required this.cameras,
+    this.initialNombre,
+  });
 
   @override
   State<CrudMedicamentosScreen> createState() => _CrudMedicamentosScreenState();
@@ -20,6 +25,10 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
   void initState() {
     super.initState();
     _cargarMedicamentos();
+    if (widget.initialNombre != null) {
+      // Usar microtask para asegurar que el build termine antes de mostrar el diálogo
+      Future.microtask(() => _mostrarFormulario(nombrePredefinido: widget.initialNombre));
+    }
   }
 
   Future<void> _cargarMedicamentos() async {
@@ -97,8 +106,8 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
     );
   }
 
-  Future<void> _mostrarFormulario({Medicamento? medicamento}) async {
-    final nombreCtrl = TextEditingController(text: medicamento?.nombre ?? '');
+  Future<void> _mostrarFormulario({Medicamento? medicamento, String? nombrePredefinido}) async {
+    final nombreCtrl = TextEditingController(text: medicamento?.nombre ?? nombrePredefinido ?? '');
     final paraQueSirveCtrl = TextEditingController(
       text: medicamento?.paraQueSirve ?? '',
     );

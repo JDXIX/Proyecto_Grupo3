@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'screens/medicamento_screen.dart';
+import 'screens/recognition/recognition_home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
           0xFF0073E6,
         ), // Vibrant blue seed from selected palette
       ),
-      home: MedicamentoScreen(cameras: cameras),
+      home: RecognitionHomeScreen(cameras: cameras),
     );
   }
 }

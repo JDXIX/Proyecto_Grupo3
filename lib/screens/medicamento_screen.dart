@@ -38,13 +38,20 @@ class _MedicamentoScreenState extends State<MedicamentoScreen> {
   }
 
   void _cargarMedicamento() async {
-    // 🔹 Simulación del resultado del OCR (Grupo 2)
-    final idToLoad = widget.medicamentoId ?? 'paracetamol';
+    final idToLoad = widget.medicamentoId;
+    if (idToLoad == null) return;
+
     final result = await DatabaseHelper.instance.getMedicamentoById(idToLoad);
 
     setState(() {
       medicamento = result;
     });
+
+    if (result != null) {
+      audioService.speak(
+        "Medicamento: ${result.nombre}. Sirve para: ${result.paraQueSirve}. Como tomar: ${result.comoTomar}. Advertencias: ${result.advertencias}",
+      );
+    }
   }
 
   @override
