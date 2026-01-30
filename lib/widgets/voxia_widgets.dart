@@ -131,15 +131,18 @@ class VoxiaGradientButton extends StatelessWidget {
                   )
                 else ...[
                   if (icon != null) ...[
-                    Icon(icon, color: Colors.white, size: 22),
-                    const SizedBox(width: 10),
+                    Icon(icon, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
                   ],
-                  Text(
-                    text,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -186,20 +189,23 @@ class VoxiaOutlinedButton extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (icon != null) ...[
-                  Icon(icon, color: VoxiaColors.primary, size: 22),
-                  const SizedBox(width: 10),
+                  Icon(icon, color: VoxiaColors.primary, size: 20),
+                  const SizedBox(width: 6),
                 ],
-                Text(
-                  text,
-                  style: const TextStyle(
-                    color: VoxiaColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                Flexible(
+                  child: Text(
+                    text,
+                    style: const TextStyle(
+                      color: VoxiaColors.primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -247,7 +253,7 @@ class VoxiaHeader extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
               child: Image.asset(
-                'assets/images/logo.png',
+                'assets/logo.png',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return _buildPlaceholderLogo();
