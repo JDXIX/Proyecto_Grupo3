@@ -244,7 +244,14 @@ class _RecognitionHomeScreenState extends State<RecognitionHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Escáner de Medicamentos'),
+        title: Text(
+          'Escáner de Medicamentos',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -257,103 +264,180 @@ class _RecognitionHomeScreenState extends State<RecognitionHomeScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Apunta a la caja del medicamento para obtener información accesible.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 20),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 12.0,
-              runSpacing: 12.0,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => _pickImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text('Galería'),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Tarjeta de instrucciones
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _pickImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Tomar Foto'),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final navigator = Navigator.of(context);
-                    final granted = await _requestPermissionFor(ImageSource.camera);
-                    if (!granted) {
-                      _showPermissionDeniedDialog();
-                      return;
-                    }
-                    if (widget.cameras.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('No hay cámaras disponibles')),
-                      );
-                      return;
-                    }
-                    final cam = widget.cameras.firstWhere(
-                      (c) => c.lensDirection == CameraLensDirection.back,
-                      orElse: () => widget.cameras.first,
-                    );
-                    final result = await navigator.push<RecognizeResult>(
-                      MaterialPageRoute(builder: (_) => CameraScreen(camera: cam)),
-                    );
-                    if (result != null) {
-                      setState(() {
-                        _imageFile = XFile(result.imagePath);
-                        _recognizedText = result.text;
-                      });
-                      await _analizarYBuscarMedicamento(result.text);
-                    }
-                  },
-                  icon: const Icon(Icons.videocam),
-                  label: const Text('Cámara en Vivo'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _isProcessing
-                  ? const Center(child: CircularProgressIndicator.adaptive())
-                  : _imageFile == null
-                      ? const Center(
-                          child: Icon(Icons.qr_code_scanner, size: 100, color: Colors.grey),
-                        )
-                      : SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(File(_imageFile!.path)),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'Texto detectado:',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  _recognizedText.isEmpty ? 'Analizando...' : _recognizedText,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.camera_alt,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Apunta a la caja del medicamento',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
-            ),
-          ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Obtén información accesible de tus medicamentos',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Botones de acción
+              Text(
+                'Selecciona una opción:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Botón Galería
+              ElevatedButton.icon(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Seleccionar de Galería'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Botón Cámara en Vivo
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final granted = await _requestPermissionFor(ImageSource.camera);
+                  if (!granted) {
+                    _showPermissionDeniedDialog();
+                    return;
+                  }
+                  if (widget.cameras.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No hay cámaras disponibles')),
+                    );
+                    return;
+                  }
+                  final cam = widget.cameras.firstWhere(
+                    (c) => c.lensDirection == CameraLensDirection.back,
+                    orElse: () => widget.cameras.first,
+                  );
+                  final result = await navigator.push<RecognizeResult>(
+                    MaterialPageRoute(builder: (_) => CameraScreen(camera: cam)),
+                  );
+                  if (result != null) {
+                    setState(() {
+                      _imageFile = XFile(result.imagePath);
+                      _recognizedText = result.text;
+                    });
+                    await _analizarYBuscarMedicamento(result.text);
+                  }
+                },
+                icon: const Icon(Icons.videocam),
+                label: const Text('Usar Cámara'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Área de resultados
+              if (_isProcessing)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator.adaptive(),
+                  ),
+                )
+              else if (_imageFile == null)
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.image_not_supported_outlined,
+                            size: 80,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Sin imagen seleccionada',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Imagen capturada:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.file(File(_imageFile!.path)),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
