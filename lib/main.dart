@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'screens/medicamento_screen.dart';
 import 'screens/recognition/recognition_home.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,13 +17,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Guía accesible de medicación',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(
-          0xFF0073E6,
-        ), // Vibrant blue seed from selected palette
-      ),
+      title: 'VOXIA - Guía de Medicación',
+      theme: VoxiaTheme.lightTheme,
       home: RecognitionHomeScreen(cameras: cameras),
     );
   }
