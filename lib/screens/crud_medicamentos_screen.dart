@@ -22,15 +22,24 @@ class CrudMedicamentosScreen extends StatefulWidget {
 
 class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
   List<Medicamento> medicamentos = [];
+  List<Medicamento> medicamentosFiltrados = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _cargarMedicamentos();
+    _searchController.addListener(_filtrarMedicamentos);
     if (widget.initialNombre != null) {
       Future.microtask(() => _mostrarFormulario(nombrePredefinido: widget.initialNombre));
     }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarMedicamentos() async {
@@ -38,9 +47,24 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
     final data = await DatabaseHelper.instance.getAllMedicamentos();
     setState(() {
       medicamentos = data;
+      medicamentosFiltrados = data;
       _isLoading = false;
     });
   }
+
+  void _filtrarMedicamentos() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        medicamentosFiltrados = medicamentos;
+      } else {
+        medicamentosFiltrados = medicamentos
+            .where((m) => m.nombre.toLowerCase().contains(query))
+            .toList();
+      }
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +76,18 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
               // AppBar personalizado
               _buildCustomAppBar(),
               
+              // Campo de búsqueda
+              _buildSearchBar(),
+              
               // Lista de medicamentos
               Expanded(
                 child: _isLoading
                     ? const VoxiaLoadingIndicator(message: 'Cargando medicamentos...')
                     : medicamentos.isEmpty
                         ? _buildEmptyState()
-                        : _buildMedicamentosList(),
+                        : medicamentosFiltrados.isEmpty
+                            ? _buildNoResultsState()
+                            : _buildMedicamentosList(),
               ),
             ],
           ),
@@ -122,7 +151,9 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
                   ),
                 ),
                 Text(
-                  '${medicamentos.length} medicamentos registrados',
+                  _searchController.text.isEmpty
+                      ? '${medicamentos.length} medicamentos registrados'
+                      : '${medicamentosFiltrados.length} de ${medicamentos.length} medicamentos',
                   style: TextStyle(
                     fontSize: 13,
                     color: VoxiaColors.textMedium,
@@ -135,6 +166,61 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
       ),
     );
   }
+
+  Widget _buildSearchBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: VoxiaColors.primary.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Buscar medicamento...',
+          hintStyle: TextStyle(
+            color: VoxiaColors.textMedium.withValues(alpha: 0.6),
+            fontSize: 15,
+          ),
+          prefixIcon: const Padding(
+            padding: EdgeInsets.only(left: 16, right: 12),
+            child: Icon(
+              Icons.search_rounded,
+              color: VoxiaColors.primary,
+              size: 24,
+            ),
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.clear_rounded,
+                    color: VoxiaColors.textMedium,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          prefixIconConstraints: const BoxConstraints(minWidth: 50),
+        ),
+        style: const TextStyle(
+          fontSize: 15,
+          color: VoxiaColors.primaryDark,
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildEmptyState() {
     return VoxiaEmptyState(
@@ -149,12 +235,24 @@ class _CrudMedicamentosScreenState extends State<CrudMedicamentosScreen> {
     );
   }
 
+  Widget _buildNoResultsState() {
+    return VoxiaEmptyState(
+      icon: Icons.search_off_rounded,
+      title: 'No se encontraron resultados',
+      subtitle: 'No hay medicamentos que coincidan con "${_searchController.text}"',
+      action: VoxiaOutlinedButton(
+        text: 'Limpiar búsqueda',
+        onPressed: () => _searchController.clear(),
+      ),
+    );
+  }
+
   Widget _buildMedicamentosList() {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-      itemCount: medicamentos.length,
+      itemCount: medicamentosFiltrados.length,
       itemBuilder: (context, index) {
-        final m = medicamentos[index];
+        final m = medicamentosFiltrados[index];
         return _buildMedicamentoCard(m, index);
       },
     );
