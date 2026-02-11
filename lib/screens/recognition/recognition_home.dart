@@ -214,7 +214,10 @@ class _RecognitionHomeScreenState extends State<RecognitionHomeScreen> {
 
   /// `Pick an image from gallery or camera, then recognize text.`
   Future<void> _pickImage(ImageSource source) async {
-    if (!(Platform.isIOS && source == ImageSource.gallery)) {
+    // For camera, request permission explicitly.
+    // For gallery, let image_picker handle it via the system photo picker
+    // (no explicit permission needed on Android 13+ or iOS).
+    if (source == ImageSource.camera) {
       final granted = await _requestPermissionFor(source);
       if (!granted) {
         if (!mounted) return;
